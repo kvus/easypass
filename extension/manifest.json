@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "EasyPass",
+  "version": "1.0.0",
+  "description": "Trình quản lý mật khẩu Zero-Knowledge — mã hóa 100% phía client.",
+
+  "permissions": ["storage", "activeTab", "scripting", "clipboardWrite"],
+
+  "host_permissions": ["http://localhost:3000/*", "http://127.0.0.1:3000/*"],
+
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+
+  "action": {
+    "default_popup": "dist/popup.html",
+    "default_title": "EasyPass"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
