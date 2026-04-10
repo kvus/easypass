@@ -26,5 +26,6 @@ Thumbs.db
 # Docker
 .docker/
 source_db_data/
-# doc
-docs/
+
+# AI-generated docs (not for repo)
+docs/docs_AI/
