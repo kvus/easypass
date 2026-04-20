@@ -32,7 +32,11 @@ export async function deriveKey(masterPassword, saltHex) {
     },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
-    true,              // extractable = true — MasterKey can be stored in chrome.storage.session
+    // extractable: true — required for Quick Unlock: exportKey() serialises the key to
+    // Base64 so it survives popup close in chrome.storage.session, then importKey()
+    // restores it. The trade-off is acceptable because chrome.storage.session is
+    // cleared when the browser session ends (not persisted to disk).
+    true,
     ['encrypt', 'decrypt']
   );
 }
