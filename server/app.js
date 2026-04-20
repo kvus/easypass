@@ -6,6 +6,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const helmet = require("helmet");
 const cors = require("cors");
 const mysql = require("mysql2/promise");
 const authRoutes = require("./routes/auth.routes");
@@ -15,6 +16,7 @@ const jwtMiddleware = require("./middleware/jwt.middleware");
 const app = express();
 
 // ---- Middleware ----
+app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
