@@ -315,7 +315,7 @@ export default function App() {
         <VaultView
           vaultData={vaultData}
           onGoAdd={() => { setGeneratedPassword(''); setView(VIEW.ADD); }}
-          onGoEdit={(item) => { setSelectedItem(item); setView(VIEW.EDIT); }}
+          onGoEdit={(item) => { setSelectedItem(item); setGeneratedPassword(''); setView(VIEW.EDIT); }}
           onGoGenerator={() => { setGenTarget(null); setView(VIEW.GENERATOR); }}
           onGoSettings={() => setView(VIEW.SETTINGS)}
           onLogout={handleLogout}
