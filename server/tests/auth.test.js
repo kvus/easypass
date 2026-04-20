@@ -31,13 +31,21 @@ app.set('db', mysql.createPool().promise());
 app.use(express.json());
 app.use('/api', authRoutes);
 
+const jwt = require('jsonwebtoken');
+
 const validHash = "a".repeat(64);
 
 describe('Auth API Endpoints', () => {
   let pool;
-  
+  let validToken;
+
   beforeAll(() => {
     pool = app.get('db');
+    validToken = jwt.sign(
+      { userId: 'usrid-123' },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h', jwtid: 'auth-test-jti-001' }
+    );
   });
 
   afterEach(() => {
@@ -105,6 +113,39 @@ describe('Auth API Endpoints', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('token');
       expect(res.body).toHaveProperty('salt', 'validsalt');
+    });
+  });
+
+  describe('POST /api/logout', () => {
+    it('should return 401 if no token provided', async () => {
+      const res = await request(app).post('/api/logout');
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('should blacklist the token and return 200', async () => {
+      // jwtMiddleware: blacklist check → not revoked
+      pool.execute.mockResolvedValueOnce([[]]);
+      // logout handler: INSERT INTO TOKEN_BLACKLIST
+      pool.execute.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+      const res = await request(app)
+        .post('/api/logout')
+        .set('Authorization', `Bearer ${validToken}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('message', 'Đăng xuất thành công');
+    });
+
+    it('should return 401 if token is already blacklisted', async () => {
+      // jwtMiddleware: blacklist check → token IS revoked
+      pool.execute.mockResolvedValueOnce([[{ jti: 'auth-test-jti-001' }]]);
+
+      const res = await request(app)
+        .post('/api/logout')
+        .set('Authorization', `Bearer ${validToken}`);
+
+      expect(res.statusCode).toBe(401);
+      expect(res.body.message).toMatch(/thu hồi/);
     });
   });
 });

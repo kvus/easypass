@@ -230,6 +230,7 @@ Base URL: `http://localhost:3000`
 |---|---|---|---|
 | `POST` | `/api/register` | Đăng ký tài khoản mới (tạo User + Vault rỗng) | — |
 | `POST` | `/api/login` | Xác thực bằng `authHash`, trả về JWT + Salt | — |
+| `POST` | `/api/logout` | Thu hồi JWT tức thì (server-side blacklist) | 🔒 JWT |
 | `GET` | `/api/vault` | Lấy bản mã Vault (ciphertext) | 🔒 JWT |
 | `PUT` | `/api/vault` | Cập nhật bản mã mới / Đổi Master Password | 🔒 JWT |
 | `GET` | `/health` | Health check | — |
@@ -303,7 +304,9 @@ npm run test
 | **PBKDF2-SHA256** | 600,000 iterations, 16-byte salt | Dẫn xuất Master Key từ Master Password |
 | **AES-256-GCM** | 256-bit key, 96-bit IV, 128-bit tag | Mã hóa xác thực toàn bộ Vault |
 | **SHA-256** | 256-bit output | Tạo auth_hash để xác thực với server |
-| **JWT** | HS256, 1h expiry | Session token cho API authentication |
+| **JWT + Blacklist** | HS256, 1h expiry, `jti` claim | Session token + thu hồi tức thì khi logout |
+| **Rate Limiting** | 10 req/phút per IP | Chống brute-force login |
+| **Helmet** | HSTS, X-Frame-Options, CSP headers | HTTP security headers |
 | **CSPRNG** | `crypto.getRandomValues()` | Sinh IV, salt, mật khẩu ngẫu nhiên |
 
 ---

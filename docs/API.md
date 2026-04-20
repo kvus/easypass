@@ -12,6 +12,7 @@
 |---|---|---|---|
 | `POST` | `/api/register` | Đăng ký tài khoản mới | — |
 | `POST` | `/api/login` | Xác thực, trả về JWT + Salt | — |
+| `POST` | `/api/logout` | Thu hồi JWT (server-side blacklist) | 🔒 JWT |
 | `GET` | `/api/vault` | Lấy ciphertext Vault | 🔒 JWT |
 | `PUT` | `/api/vault` | Cập nhật ciphertext / Đổi Master Password | 🔒 JWT |
 | `GET` | `/health` | Health check | — |
@@ -26,7 +27,9 @@ Các endpoint yêu cầu xác thực (🔒) cần gửi JWT token trong header:
 Authorization: Bearer <jwt-token>
 ```
 
-JWT được tạo bởi server khi đăng nhập thành công, có thời hạn **1 giờ** (configurable qua `JWT_EXPIRES_IN`).
+JWT được tạo bởi server khi đăng nhập thành công, có thời hạn **1 giờ** (configurable qua `JWT_EXPIRES_IN`). Mỗi JWT chứa claim `jti` (JWT ID) để hỗ trợ thu hồi tức thì qua blacklist.
+
+> 🔒 **Rate Limiting:** `POST /api/login` bị giới hạn **10 requests/phút** per IP. Vượt quá sẽ nhận `429 Too Many Requests`.
 
 ---
 
@@ -92,6 +95,7 @@ Xác thực người dùng. Server so sánh hash bằng `crypto.timingSafeEqual(
 | `400` | `{"message": "Thiếu username hoặc authHash"}` | Thiếu field |
 | `400` | `{"message": "authHash không hợp lệ..."}` | Hash sai format |
 | `401` | `{"message": "Sai tên đăng nhập hoặc mật khẩu"}` | Xác thực thất bại |
+| `429` | `{"message": "Quá nhiều yêu cầu đăng nhập, vui lòng thử lại sau"}` | Rate limit (10 req/phút) |
 | `500` | `{"message": "Lỗi server khi đăng nhập"}` | Internal error |
 
 **Response thành công:**
@@ -106,9 +110,40 @@ Xác thực người dùng. Server so sánh hash bằng `crypto.timingSafeEqual(
 
 | Field | Mô tả |
 |---|---|
-| `token` | JWT (HS256), thời hạn 1h, chứa `{userId}` |
+| `token` | JWT (HS256), thời hạn 1h, chứa `{userId, jti}` |
 | `salt` | 32-char hex string (16 bytes), dùng cho PBKDF2 phía client |
 | `userId` | UUID v4 của user |
+
+---
+
+### `POST /api/logout`
+
+Thu hồi JWT hiện tại bằng cách ghi `jti` vào bảng `TOKEN_BLACKLIST`. Mọi request sau đó dùng token này sẽ bị từ chối ngay lập tức, kể cả khi token chưa hết hạn tự nhiên.
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body:** _(không cần)_
+
+**Responses:**
+
+| Status | Body | Mô tả |
+|---|---|---|
+| `200` | `{"message": "Đăng xuất thành công"}` | Token đã được thu hồi |
+| `401` | `{"message": "Thiếu token xác thực"}` | Không có JWT |
+| `401` | `{"message": "Token đã hết hạn..."}` | JWT expired |
+| `500` | `{"message": "Lỗi server khi đăng xuất"}` | Internal error |
+
+**Ví dụ:**
+
+```bash
+curl -X POST http://localhost:3000/api/logout \
+  -H "Authorization: Bearer eyJhbGci..."
+```
+
+> ℹ️ Extension tự động gọi endpoint này khi người dùng nhấn **Đăng xuất**. Token bị blacklist tức thì — không cần chờ hết hạn 1 giờ.
 
 ---
 
@@ -232,9 +267,10 @@ Health check endpoint (không cần authentication).
 | `200` | Thành công |
 | `201` | Tạo mới thành công |
 | `400` | Request không hợp lệ (thiếu field, sai format) |
-| `401` | Xác thực thất bại (sai credentials hoặc JWT invalid/expired) |
+| `401` | Xác thực thất bại (sai credentials, JWT invalid/expired, hoặc token đã bị thu hồi) |
 | `404` | Resource không tìm thấy |
 | `409` | Conflict (username đã tồn tại) |
+| `429` | Too Many Requests — rate limit vượt quá (POST /api/login) |
 | `500` | Internal server error |
 
 ---
@@ -246,7 +282,7 @@ Health check endpoint (không cần authentication).
 | `username` | 3-50 chars, regex: `^[A-Za-z0-9_\-\.]+$` |
 | `authHash` | Exactly 64 hex chars, regex: `^[a-fA-F0-9]{64}$` |
 | `newSalt` | Exactly 32 hex chars, regex: `^[a-fA-F0-9]{32}$` |
-| `encryptedData` | Non-empty string (Base64 encoded) |
+| `encryptedData` | Non-empty string, Base64 standard (`A-Za-z0-9+/` + `=` padding), length % 4 == 0 |
 
 ---
 

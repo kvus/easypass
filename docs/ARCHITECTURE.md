@@ -223,7 +223,10 @@ EasyPass sử dụng hai tầng storage của Chrome Extension:
 2. `chrome.storage.session` → có `masterKeyBase64`? → import lại `CryptoKey`
 3. Nếu cả hai OK → tự động decrypt vault, bỏ qua màn hình login.
 
-**Logout:** Xóa hoàn toàn cả `local` và `session` storage.
+**Logout flow:**
+1. Client gọi `POST /api/logout` với Bearer token → server ghi `jti` vào `TOKEN_BLACKLIST`.
+2. Client xóa toàn bộ `chrome.storage.local` và `chrome.storage.session` (token, MK, salt).
+3. Mọi request sau đó dùng token cũ đều bị từ chối ngay (blacklist check trong jwtMiddleware), kể cả khi token chưa hết hạn tự nhiên.
 
 ---
 
@@ -256,8 +259,12 @@ EasyPass sử dụng hai tầng storage của Chrome Extension:
 |---|---|
 | Server bị xâm phạm | Zero-Knowledge: server chỉ có ciphertext, không có key |
 | Brute-force Master Password | PBKDF2 600k iterations (~300-500ms/attempt) |
+| Brute-force login endpoint | Rate limiting: 10 requests/phút per IP (`express-rate-limit`) |
 | Tampering ciphertext | AES-GCM integrity tag phát hiện mọi thay đổi |
 | Timing side-channel (login) | `crypto.timingSafeEqual()` cho hash comparison |
+| Token reuse sau logout | JWT blacklist (`TOKEN_BLACKLIST` table) — `jti` bị thu hồi tức thì |
 | Man-in-the-middle | HTTPS (production), CORS whitelist |
-| XSS trong extension | Manifest V3 CSP, no remote code execution |
+| XSS trong extension | Manifest V3 + `content_security_policy` trong manifest.json |
+| Clickjacking / header injection | `helmet` middleware (X-Frame-Options, X-Content-Type-Options, HSTS, …) |
 | Memory dump attack | MK xóa khỏi RAM khi logout; `chrome.storage.session` = RAM only |
+| Stolen token (session hijack) | Logout thu hồi token server-side; expiry 1h giới hạn window tấn công |

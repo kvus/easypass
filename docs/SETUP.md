@@ -192,7 +192,26 @@ JWT_EXPIRES_IN=1h                    # Token expiry time
 
 ---
 
-## 6. Troubleshooting
+## 6. Database Schema
+
+EasyPass sử dụng 3 bảng:
+
+| Bảng | Mô tả |
+|------|-------|
+| `USER` | Thông tin tài khoản: `user_id`, `username`, `auth_hash`, `salt` |
+| `VAULT` | Ciphertext vault: `vault_id`, `user_id`, `encrypted_data` |
+| `TOKEN_BLACKLIST` | JWT đã bị thu hồi: `jti`, `user_id`, `expires_at` |
+
+Schema được tự động khởi tạo khi Docker Compose chạy lần đầu. Nếu cần **reset toàn bộ dữ liệu** (vd. sau khi thay đổi schema):
+
+```bash
+docker compose down -v   # Xóa volume DB
+docker compose up -d --build   # Tạo lại từ đầu
+```
+
+---
+
+## 7. Troubleshooting
 
 ### ❌ "Không thể kết nối server"
 
@@ -235,6 +254,23 @@ Tăng thời hạn trong `.env`:
 ```
 JWT_EXPIRES_IN=24h
 ```
+
+### ❌ "Token đã bị thu hồi"
+
+**Nguyên nhân:** Token đã bị blacklist sau khi đăng xuất. Đây là hoạt động bình thường của cơ chế bảo mật.
+
+Giải pháp: Đăng nhập lại để nhận JWT mới.
+
+> ℹ️ Server lưu JWT đã logout trong bảng `TOKEN_BLACKLIST`. Bảng này tự động bao gồm `expires_at` để có thể dọn dẹp các dòng hết hạn bằng lệnh:
+> ```sql
+> DELETE FROM TOKEN_BLACKLIST WHERE expires_at < NOW();
+> ```
+
+### ❌ "Quá nhiều yêu cầu đăng nhập" (429)
+
+**Nguyên nhân:** Rate limiting — tối đa **10 lần đăng nhập/phút** per IP.
+
+Giải pháp: Chờ 1 phút rồi thử lại. Nếu cần tăng giới hạn trong môi trường dev, sửa `windowMs` và `max` trong `server/routes/auth.routes.js`.
 
 ### ❌ Extension không hiện popup
 
