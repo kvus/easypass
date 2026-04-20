@@ -100,5 +100,62 @@ describe('Vault API Endpoints', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('message', 'Vault đã được cập nhật');
     });
+
+    it('should return 400 for invalid Base64 encryptedData', async () => {
+      pool.execute.mockResolvedValueOnce([[]]); // blacklist check
+
+      const res = await request(app)
+        .put('/api/vault')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({ encryptedData: '!!!not-valid-base64!!!' });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toMatch(/Base64/);
+    });
+
+    it('should update vault AND user credentials on change-password (newAuthHash + newSalt)', async () => {
+      // Blacklist check: token not revoked
+      pool.execute.mockResolvedValueOnce([[]]);
+      const mConnection = await pool.getConnection();
+      // 1st execute: UPDATE VAULT
+      mConnection.execute.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      // 2nd execute: UPDATE USER (auth_hash + salt)
+      mConnection.execute.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+      const newAuthHash = 'b'.repeat(64); // valid 64-char hex
+      const newSalt     = 'c'.repeat(32); // valid 32-char hex
+
+      const res = await request(app)
+        .put('/api/vault')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({
+          encryptedData: 'dGVzdEVuY3J5cHRlZERhdGE=',
+          newAuthHash,
+          newSalt,
+        });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.message).toMatch(/Master Password/);
+
+      // Verify both DB statements were called
+      expect(mConnection.execute).toHaveBeenCalledTimes(2);
+      expect(mConnection.commit).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return 400 if newAuthHash is invalid when changing password', async () => {
+      pool.execute.mockResolvedValueOnce([[]]); // blacklist check
+
+      const res = await request(app)
+        .put('/api/vault')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({
+          encryptedData: 'dGVzdEVuY3J5cHRlZERhdGE=',
+          newAuthHash: 'tooshort',
+          newSalt: 'c'.repeat(32),
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toMatch(/newAuthHash/);
+    });
   });
 });
