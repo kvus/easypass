@@ -181,7 +181,7 @@ export default function App() {
   // S07 — Đăng xuất
   // -------------------------------------------------------
   const handleLogout = useCallback(async () => {
-    try { await logout(); } catch { /* ignore */ }
+    try { await logout(session.token); } catch { /* ignore */ }
     setSession({ username: '', userId: '', token: '', salt: '' });
     setMasterKey(null);
     setVaultData({ version: 1, items: [] });

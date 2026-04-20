@@ -8,6 +8,7 @@ const { Router } = require("express");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
+const jwtMiddleware = require("../middleware/jwt.middleware");
 
 const router = Router();
 const SECRET =
@@ -123,6 +124,7 @@ router.post("/login", loginLimiter, async (req, res) => {
     }
     const token = jwt.sign({ userId: user.user_id }, SECRET, {
       expiresIn: EXPIRES,
+      jwtid: crypto.randomUUID(),
     });
 
     return res.status(200).json({
@@ -133,6 +135,25 @@ router.post("/login", loginLimiter, async (req, res) => {
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Lỗi server khi đăng nhập" });
+  }
+});
+
+// ---- POST /api/logout ----
+router.post("/logout", jwtMiddleware, async (req, res) => {
+  const db = req.app.get("db");
+  const { jti, exp } = req.user;
+  const userId = req.user.id;
+
+  try {
+    const expiresAt = new Date(exp * 1000);
+    await db.execute(
+      "INSERT IGNORE INTO TOKEN_BLACKLIST (jti, user_id, expires_at) VALUES (?, ?, ?)",
+      [jti, userId, expiresAt]
+    );
+    return res.status(200).json({ message: "Đăng xuất thành công" });
+  } catch (err) {
+    console.error("Logout error:", err);
+    return res.status(500).json({ message: "Lỗi server khi đăng xuất" });
   }
 });
 

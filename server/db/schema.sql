@@ -38,3 +38,20 @@ CREATE TABLE IF NOT EXISTS VAULT (
 
 -- Unique index: each user has exactly one vault (1:1 with USER)
 CREATE UNIQUE INDEX idx_vault_user ON VAULT (user_id);
+
+-- ---- Bảng TOKEN_BLACKLIST ----
+-- Lưu các JWT đã bị thu hồi (logout) — middleware check trước khi cho qua.
+-- Tự động dọn các dòng hết hạn: expires_at < NOW()
+CREATE TABLE IF NOT EXISTS TOKEN_BLACKLIST (
+  jti         CHAR(36)    NOT NULL COMMENT 'JWT ID (jti claim)',
+  user_id     CHAR(36)    NOT NULL,
+  expires_at  TIMESTAMP   NOT NULL COMMENT 'Thời điểm token hết hạn tự nhiên — để dọn sau này',
+  created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (jti),
+  CONSTRAINT fk_blacklist_user FOREIGN KEY (user_id) REFERENCES USER (user_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE INDEX idx_blacklist_expires ON TOKEN_BLACKLIST (expires_at);

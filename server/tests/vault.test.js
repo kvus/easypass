@@ -38,7 +38,11 @@ describe('Vault API Endpoints', () => {
   beforeAll(() => {
     pool = app.get('db');
     // Use the default fallback secret from jwt.middleware.js
-    validToken = jwt.sign({ userId: 'usrid-123' }, 'super_secret_jwt_key_change_in_production', { expiresIn: '1h' });
+    validToken = jwt.sign(
+      { userId: 'usrid-123' },
+      'super_secret_jwt_key_change_in_production',
+      { expiresIn: '1h', jwtid: 'test-jti-123' }
+    );
   });
 
   afterEach(() => {
@@ -52,7 +56,9 @@ describe('Vault API Endpoints', () => {
     });
 
     it('should return 404 if vault not found', async () => {
-      // Giả lập DB không trả về vault nào
+      // Blacklist check: token not revoked
+      pool.execute.mockResolvedValueOnce([[]]);
+      // Vault query: not found
       pool.execute.mockResolvedValueOnce([[]]);
 
       const res = await request(app)
@@ -64,6 +70,8 @@ describe('Vault API Endpoints', () => {
     });
 
     it('should return 200 and ciphertext if successful', async () => {
+      // Blacklist check: token not revoked
+      pool.execute.mockResolvedValueOnce([[]]);
       pool.execute.mockResolvedValueOnce([[{ encrypted_data: 'encrypted-base64-blob', updated_at: '2023-01-01' }]]);
 
       const res = await request(app)
@@ -77,6 +85,8 @@ describe('Vault API Endpoints', () => {
 
   describe('PUT /api/vault', () => {
     it('should update vault and return 200', async () => {
+      // Blacklist check: token not revoked
+      pool.execute.mockResolvedValueOnce([[]]);
       const mConnection = await pool.getConnection();
       mConnection.execute.mockResolvedValueOnce([{ affectedRows: 1 }]);
 

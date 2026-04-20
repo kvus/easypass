@@ -91,8 +91,19 @@ export async function fetchVault(sessionToken) {
 }
 
 /**
- * Logout: clear session from service worker memory
+ * Logout: revoke JWT on server, then clear local session
+ * @param {string} [sessionToken] — JWT to revoke; if absent, only clears locally
  */
-export function logout() {
+export async function logout(sessionToken) {
+  if (sessionToken) {
+    try {
+      await fetch(`${API_BASE}/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${sessionToken}` }
+      });
+    } catch {
+      // Server-side revocation failed — still clear local session
+    }
+  }
   return chrome.runtime.sendMessage({ type: 'CLEAR_SESSION' });
 }
