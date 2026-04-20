@@ -66,21 +66,8 @@ export default function SettingsView({
       // 5. Tính auth hash mới
       const newAuthHash = await computeAuthHash(newPw);
 
-      // 6. Gửi lên server
-      const res = await fetch('/api/vault', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.token}`
-        },
-        body: JSON.stringify({
-          encryptedData: newCiphertext,
-          newAuthHash,
-          newSalt: newSaltHex
-        })
-      });
-
-      if (!res.ok) throw new Error('Không thể cập nhật lên server.');
+      // 6. Gửi lên server qua syncVault (nhất quán với toàn bộ app)
+      await syncVault(newCiphertext, session.token, { newAuthHash, newSalt: newSaltHex });
 
       // 7. Cập nhật state
       if (onMasterKeyUpdate) onMasterKeyUpdate(newMasterKey, newSaltHex);
