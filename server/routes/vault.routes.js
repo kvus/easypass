@@ -45,6 +45,13 @@ router.put('/vault', async (req, res) => {
   if (encryptedData === undefined) {
     return res.status(400).json({ message: 'Thiếu encryptedData' });
   }
+  if (typeof encryptedData !== 'string' || encryptedData.length === 0) {
+    return res.status(400).json({ message: 'encryptedData phải là chuỗi Base64 không rỗng' });
+  }
+  // Standard Base64: A-Za-z0-9+/ with up to 2 = padding, length divisible by 4
+  if (!/^[A-Za-z0-9+/]+=*$/.test(encryptedData) || encryptedData.length % 4 !== 0) {
+    return res.status(400).json({ message: 'encryptedData không phải định dạng Base64 hợp lệ' });
+  }
 
   // Validate change-password fields nếu có
   const isChangingPassword = newAuthHash !== undefined || newSalt !== undefined;

@@ -93,7 +93,7 @@ describe('Vault API Endpoints', () => {
       const res = await request(app)
         .put('/api/vault')
         .set('Authorization', `Bearer ${validToken}`)
-        .send({ encryptedData: 'new-encrypted-base64-blob' });
+        .send({ encryptedData: 'dGVzdEVuY3J5cHRlZERhdGE=' }); // valid Base64
 
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('message', 'Vault đã được cập nhật');
