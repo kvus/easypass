@@ -7,11 +7,20 @@
 const { Router } = require("express");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const rateLimit = require("express-rate-limit");
 
 const router = Router();
 const SECRET =
   process.env.JWT_SECRET || "super_secret_jwt_key_change_in_production";
 const EXPIRES = process.env.JWT_EXPIRES_IN || "1h";
+
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Quá nhiều yêu cầu đăng nhập, vui lòng thử lại sau" },
+});
 
 // ---- POST /api/register ----
 router.post("/register", async (req, res) => {
@@ -77,7 +86,7 @@ router.post("/register", async (req, res) => {
 });
 
 // ---- POST /api/login ----
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   const db = req.app.get("db");
   const { username, authHash } = req.body;
 
