@@ -5,7 +5,8 @@
 
 const jwt = require('jsonwebtoken');
 
-const SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_in_production';
+const SECRET = process.env.JWT_SECRET;
+if (!SECRET) throw new Error('JWT_SECRET environment variable is required');
 
 /**
  * Middleware: verify JWT in Authorization header, then check token blacklist.

@@ -11,8 +11,8 @@ const rateLimit = require("express-rate-limit");
 const jwtMiddleware = require("../middleware/jwt.middleware");
 
 const router = Router();
-const SECRET =
-  process.env.JWT_SECRET || "super_secret_jwt_key_change_in_production";
+const SECRET = process.env.JWT_SECRET;
+if (!SECRET) throw new Error('JWT_SECRET environment variable is required');
 const EXPIRES = process.env.JWT_EXPIRES_IN || "1h";
 
 const loginLimiter = rateLimit({

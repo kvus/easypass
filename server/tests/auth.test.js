@@ -1,3 +1,5 @@
+process.env.JWT_SECRET = 'test_secret_value';
+
 const request = require('supertest');
 const express = require('express');
 const mysql = require('mysql2');

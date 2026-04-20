@@ -1,3 +1,5 @@
+process.env.JWT_SECRET = 'test_secret_value';
+
 const request = require('supertest');
 const express = require('express');
 const mysql = require('mysql2');
@@ -40,7 +42,7 @@ describe('Vault API Endpoints', () => {
     // Use the default fallback secret from jwt.middleware.js
     validToken = jwt.sign(
       { userId: 'usrid-123' },
-      'super_secret_jwt_key_change_in_production',
+      process.env.JWT_SECRET,
       { expiresIn: '1h', jwtid: 'test-jti-123' }
     );
   });
