@@ -20,6 +20,7 @@ Mọi thao tác mã hóa diễn ra 100% phía client — Server không bao giờ
 ## 📋 Mục lục
 
 - [Giới thiệu](#-giới-thiệu)
+- [Screenshots](#-screenshots)
 - [Kiến trúc bảo mật](#-kiến-trúc-bảo-mật)
 - [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
 - [Cấu trúc dự án](#-cấu-trúc-dự-án)
@@ -53,6 +54,30 @@ Mọi thao tác mã hóa diễn ra 100% phía client — Server không bao giờ
 - 🔄 **Cloud Sync** — Đồng bộ bản mã qua REST API
 - 📱 **Quick Unlock** — Mở lại Extension không cần nhập lại Master Password trong phiên trình duyệt
 - 🔐 **Change Master Password** — Đổi mật khẩu chính với tái mã hóa toàn bộ Vault
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+
+| Đăng nhập | Tạo tài khoản |
+|:---:|:---:|
+| ![Login](docs/screenshots/login.png) | ![Register](docs/screenshots/signup.png) |
+
+| Vault — Danh sách mật khẩu | Thêm mục mới |
+|:---:|:---:|
+| ![Vault](docs/screenshots/vaultview.png) | ![Add Entry](docs/screenshots/addentry.png) |
+
+| Sinh mật khẩu ngẫu nhiên | Quick Unlock |
+|:---:|:---:|
+| ![Generator](docs/screenshots/generate.png) | ![Quick Unlock](docs/screenshots/quickunlock.png) |
+
+| Cài đặt | Đổi Master Password |
+|:---:|:---:|
+| ![Settings](docs/screenshots/setting1.png) | ![Change Password](docs/screenshots/setting2.png) |
+
+</div>
 
 ---
 
