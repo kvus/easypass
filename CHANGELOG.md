@@ -4,6 +4,32 @@ Tất cả các thay đổi đáng chú ý của dự án được ghi lại ở
 
 ---
 
+## [1.1.2] — 2026-04-21 · Code Quality & Security Polish
+
+### 🔒 Security
+
+- **Rate Limiting trên `/register`**: Giới hạn **5 requests/giờ per IP** để chống spam tạo tài khoản và account enumeration attack.
+- **JWT_SECRET khỏi docker-compose**: Xóa secret hardcoded khỏi `docker-compose.yml`, thay bằng `env_file: ./server/.env`. Secret không còn bị lộ qua version control.
+- **Strong JWT_SECRET mặc định**: Cập nhật `.env.example` với hướng dẫn rõ ràng (`openssl rand -hex 32`) thay vì placeholder dễ bị bỏ qua.
+
+### ♻️ Refactoring
+
+- **VaultView giảm 44% LOC** (257 → 144 dòng): Loại bỏ inline entry card duplicated, chuyển sang dùng component `EntryCard` đã có. `EntryCard` được mở rộng thêm props `onAutoFill` và `isMatch` để hỗ trợ auto-fill và domain-match hint.
+- **Xóa toàn bộ inline styles trong VaultView**: Chuyển sang CSS classes trong `index.css` — dễ maintain, nhất quán với design system.
+- **Error handling trong content script**: Bọc `autoFillForm()` trong `try/catch` — ngăn lỗi DOM bất ngờ phá vỡ message listener.
+
+### 🛠️ Tooling
+
+- **ESLint cấu hình**: Thêm `eslint.config.js` với rules `react-hooks` và `react-refresh` — phát hiện sớm lỗi hooks và import không dùng đến.
+
+### 📝 Documentation
+
+- `ARCHITECTURE.md`: Bổ sung rate limit `/register` vào Threat Model.
+- `API.md`: Thêm response `429` và ghi chú rate limit cho endpoint `/register`.
+- `README.md`: Cập nhật bảng thông số bảo mật — Rate Limiting ghi rõ cả login lẫn register.
+
+---
+
 ## [1.1.1] — 2025-04-21 · UX & Bug Fix Patch
 
 ### 🐛 Bug Fixes

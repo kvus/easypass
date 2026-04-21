@@ -25,15 +25,12 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - ./server/.env
     environment:
       DB_HOST: db
       DB_PORT: 3306
-      DB_USER: easypass_user
-      DB_PASSWORD: easypass_pass
-      DB_NAME: easypass
-      JWT_SECRET: super_secret_jwt_key_change_in_production
       PORT: 3000
-      NODE_ENV: development
     depends_on:
       db:
         condition: service_healthy

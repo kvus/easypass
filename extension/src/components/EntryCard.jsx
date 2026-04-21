@@ -8,7 +8,7 @@ import { getCategoryInfo, copyToClipboard } from '../../modules/utils.js';
  *  - onEdit: (item) => void
  *  - loading: boolean
  */
-export default function EntryCard({ item, onEdit, loading = false }) {
+export default function EntryCard({ item, onEdit, onAutoFill, isMatch = false, loading = false }) {
   const [showPw, setShowPw] = useState(false);
   const [copied, setCopied] = useState(false);
   const cat = getCategoryInfo(item.category);
@@ -61,14 +61,29 @@ export default function EntryCard({ item, onEdit, loading = false }) {
       </div>
 
       <div className="entry-footer">
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={() => onEdit(item)}
-          disabled={loading}
-        >
-          ✏️ Sửa
-        </button>
+        {isMatch && (
+          <span className="entry-match-hint">🎯 Gợi ý website</span>
+        )}
+        <div className="entry-actions">
+          {onAutoFill && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => onAutoFill(item)}
+              disabled={loading}
+            >
+              ⚡ Điền
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => onEdit(item)}
+            disabled={loading}
+          >
+            ✏️ Sửa
+          </button>
+        </div>
       </div>
     </article>
   );

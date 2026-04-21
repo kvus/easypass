@@ -23,8 +23,16 @@ const loginLimiter = rateLimit({
   message: { message: "Quá nhiều yêu cầu đăng nhập, vui lòng thử lại sau" },
 });
 
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Quá nhiều yêu cầu đăng ký, vui lòng thử lại sau 1 giờ" },
+});
+
 // ---- POST /api/register ----
-router.post("/register", async (req, res) => {
+router.post("/register", registerLimiter, async (req, res) => {
   const db = req.app.get("db");
   const { username, authHash } = req.body;
 

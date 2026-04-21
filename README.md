@@ -330,7 +330,7 @@ npm run test
 | **AES-256-GCM** | 256-bit key, 96-bit IV, 128-bit tag | Mã hóa xác thực toàn bộ Vault |
 | **SHA-256** | 256-bit output | Tạo auth_hash để xác thực với server |
 | **JWT + Blacklist** | HS256, 1h expiry, `jti` claim | Session token + thu hồi tức thì khi logout |
-| **Rate Limiting** | 10 req/phút per IP | Chống brute-force login |
+| **Rate Limiting** | Login: 10 req/phút · Register: 5 req/giờ per IP | Chống brute-force & spam tài khoản |
 | **Helmet** | HSTS, X-Frame-Options, CSP headers | HTTP security headers |
 | **CSPRNG** | `crypto.getRandomValues()` | Sinh IV, salt, mật khẩu ngẫu nhiên |
 

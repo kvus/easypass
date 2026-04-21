@@ -17,14 +17,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * Inject username + password into the visible login form
  */
 function autoFillForm(entry) {
-  const usernameField = findUsernameField();
-  const passwordField = document.querySelector('input[type="password"]');
+  try {
+    const usernameField = findUsernameField();
+    const passwordField = document.querySelector('input[type="password"]');
 
-  if (usernameField && entry.username) {
-    setNativeValue(usernameField, entry.username);
-  }
-  if (passwordField && entry.password) {
-    setNativeValue(passwordField, entry.password);
+    if (usernameField && entry.username) {
+      setNativeValue(usernameField, entry.username);
+    }
+    if (passwordField && entry.password) {
+      setNativeValue(passwordField, entry.password);
+    }
+  } catch (err) {
+    console.warn('[EasyPass] Auto-fill failed:', err.message);
   }
 }
 

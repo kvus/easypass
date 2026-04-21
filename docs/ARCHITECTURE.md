@@ -259,7 +259,8 @@ EasyPass sử dụng hai tầng storage của Chrome Extension:
 |---|---|
 | Server bị xâm phạm | Zero-Knowledge: server chỉ có ciphertext, không có key |
 | Brute-force Master Password | PBKDF2 600k iterations (~300-500ms/attempt) |
-| Brute-force login endpoint | Rate limiting: 10 requests/phút per IP (`express-rate-limit`) |
+| Brute-force login endpoint | Rate limiting: 10 requests/phút per IP trên `POST /login` (`express-rate-limit`) |
+| Spam đăng ký tài khoản | Rate limiting: 5 requests/giờ per IP trên `POST /register` (`express-rate-limit`) |
 | Tampering ciphertext | AES-GCM integrity tag phát hiện mọi thay đổi |
 | Timing side-channel (login) | `crypto.timingSafeEqual()` cho hash comparison |
 | Token reuse sau logout | JWT blacklist (`TOKEN_BLACKLIST` table) — `jti` bị thu hồi tức thì |
