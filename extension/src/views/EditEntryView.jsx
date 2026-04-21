@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PasswordInput from '../components/PasswordInput.jsx';
 import PasswordStrengthBar from '../components/PasswordStrengthBar.jsx';
 import { assessStrength, generatePassword, CATEGORIES } from '../../modules/utils.js';
@@ -33,6 +33,10 @@ export default function EditEntryView({
   });
   const [error, setError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (generatedPassword) setForm(f => ({ ...f, password: generatedPassword }));
+  }, [generatedPassword]);
 
   const strength = form.password ? assessStrength(form.password) : null;
 

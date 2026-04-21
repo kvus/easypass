@@ -2,11 +2,20 @@ import { useState, useEffect, useCallback } from 'react';
 import { authenticate, register as registerUser, fetchVault, logout } from '../../modules/auth.js';
 import { deriveKey, decryptVault, exportKey, importKey } from '../../modules/crypto.js';
 
+function isTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return Date.now() >= payload.exp * 1000;
+  } catch {
+    return true;
+  }
+}
+
 /**
  * useAuth — manages session/masterKey/vaultData state + all auth handlers
  * @param {{ showToast: Function, onViewChange: Function }} params
  */
-export function useAuth({ showToast, onViewChange }) {
+export function useAuth({ showToast, onViewChange, onSessionExpired }) {
   const [session,    setSession]    = useState({ username: '', userId: '', token: '', salt: '' });
   const [masterKey,  setMasterKey]  = useState(null);
   const [vaultData,  setVaultData]  = useState({ version: 1, items: [] });
@@ -34,6 +43,14 @@ export function useAuth({ showToast, onViewChange }) {
         const resp  = await chrome.runtime.sendMessage({ type: 'GET_SESSION' });
         const saved = resp?.session;
         if (!saved?.sessionToken || !saved?.salt) return;
+
+        if (isTokenExpired(saved.sessionToken)) {
+          await chrome.runtime.sendMessage({ type: 'CLEAR_SESSION' });
+          onSessionExpired?.(saved.username || '');
+          showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.', 'info');
+          onViewChange('login');
+          return;
+        }
 
         setSession({
           username: saved.username || '',

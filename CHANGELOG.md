@@ -4,6 +4,16 @@ Tất cả các thay đổi đáng chú ý của dự án được ghi lại ở
 
 ---
 
+## [1.1.1] — 2025-04-21 · UX & Bug Fix Patch
+
+### 🐛 Bug Fixes
+
+- **Form State Preserved on Generator Navigate**: `AddEntryView` và `EditEntryView` giữ nguyên dữ liệu đã nhập khi người dùng mở Generator để sinh mật khẩu rồi quay lại — trước đây toàn bộ form bị reset. Fix bằng cách giữ component mounted (ẩn bằng CSS) và thêm `useEffect` để nhận password mới từ Generator.
+- **Token Expiry Detection on Popup Open**: Khi mở Extension sau khi token hết hạn (≥ 1h), app phát hiện ngay từ client-side (decode JWT payload, check `exp`) thay vì để người dùng vào QuickUnlock rồi nhận lỗi 401 từ server. Session bị clear, redirect thẳng về Login.
+- **Username Pre-fill After Session Expiry**: Sau khi token hết hạn, màn hình Login tự điền sẵn username từ session cũ — người dùng chỉ cần nhập lại Master Password.
+
+---
+
 ## [1.1.0] — 2025-04-21 · Security Hardening Release
 
 Phiên bản này tập trung hoàn toàn vào tăng cường bảo mật và chất lượng code sau security review nội bộ. Không có thay đổi nào phá vỡ backward-compatibility.

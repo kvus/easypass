@@ -35,6 +35,7 @@ export default function App() {
   const [genTarget,         setGenTarget]         = useState(null);
   const [generatedPassword, setGeneratedPassword] = useState('');
   const [selectedItem,      setSelectedItem]      = useState(null);
+  const [expiredUsername,   setExpiredUsername]   = useState('');
 
   const { toast, showToast } = useToast();
 
@@ -44,7 +45,7 @@ export default function App() {
     loading: authLoading, persistSession,
     handleLogin, handleRegister, handleLogout,
     handleQuickUnlockSuccess, handleMasterKeyUpdate,
-  } = useAuth({ showToast, onViewChange: setView });
+  } = useAuth({ showToast, onViewChange: setView, onSessionExpired: setExpiredUsername });
 
   // — Vault CRUD + encrypt + sync —
   const vault = useVault({
@@ -116,7 +117,8 @@ export default function App() {
         <LoginView
           loading={isLoading}
           onLogin={handleLogin}
-          onGoRegister={() => setView(VIEW.REGISTER)}
+          onGoRegister={() => { setExpiredUsername(''); setView(VIEW.REGISTER); }}
+          initialUsername={expiredUsername}
         />
       )}
 
@@ -147,26 +149,30 @@ export default function App() {
         />
       )}
 
-      {view === VIEW.ADD && (
-        <AddEntryView
-          generatedPassword={generatedPassword}
-          loading={isLoading}
-          onSave={handleAddEntry}
-          onCancel={() => setView(VIEW.VAULT)}
-          onGoGenerator={(target) => { setGenTarget(target); setView(VIEW.GENERATOR); }}
-        />
+      {(view === VIEW.ADD || (view === VIEW.GENERATOR && genTarget === 'add')) && (
+        <div style={view !== VIEW.ADD ? { display: 'none' } : undefined}>
+          <AddEntryView
+            generatedPassword={generatedPassword}
+            loading={isLoading}
+            onSave={handleAddEntry}
+            onCancel={() => setView(VIEW.VAULT)}
+            onGoGenerator={(target) => { setGenTarget(target); setView(VIEW.GENERATOR); }}
+          />
+        </div>
       )}
 
-      {view === VIEW.EDIT && selectedItem && (
-        <EditEntryView
-          item={selectedItem}
-          generatedPassword={generatedPassword}
-          loading={isLoading}
-          onSave={handleEditEntry}
-          onDelete={handleDeleteEntry}
-          onCancel={() => { setSelectedItem(null); setView(VIEW.VAULT); }}
-          onGoGenerator={(target) => { setGenTarget(target); setView(VIEW.GENERATOR); }}
-        />
+      {(view === VIEW.EDIT || (view === VIEW.GENERATOR && genTarget === 'edit')) && selectedItem && (
+        <div style={view !== VIEW.EDIT ? { display: 'none' } : undefined}>
+          <EditEntryView
+            item={selectedItem}
+            generatedPassword={generatedPassword}
+            loading={isLoading}
+            onSave={handleEditEntry}
+            onDelete={handleDeleteEntry}
+            onCancel={() => { setSelectedItem(null); setView(VIEW.VAULT); }}
+            onGoGenerator={(target) => { setGenTarget(target); setView(VIEW.GENERATOR); }}
+          />
+        </div>
       )}
 
       {view === VIEW.GENERATOR && (
